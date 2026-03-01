@@ -1,0 +1,22 @@
+{
+  "name": "saratra05",
+  "version": "0.0.1",
+  "description": "A tribute to saretra05's series",
+  "main": "main.js",
+  "scripts": {
+    "teto": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Live2D",
+    "electron",
+    "Kasane",
+    "Teto",
+    "saretra05"
+  ],
+  "author": "tadoto",
+  "license": "WTFPL",
+  "devDependencies": {
+    "electron": "^40.6.1"
+  }
+}
