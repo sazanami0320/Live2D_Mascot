@@ -1,22 +1,94 @@
 {
-  "name": "saratra05",
-  "version": "0.0.1",
-  "description": "A tribute to saretra05's series",
-  "main": "main.js",
-  "scripts": {
-    "teto": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [
-    "Live2D",
-    "electron",
-    "Kasane",
-    "Teto",
-    "saretra05"
-  ],
-  "author": "tadoto",
-  "license": "WTFPL",
-  "devDependencies": {
-    "electron": "^40.6.1"
-  }
+    "name": "saratra05",
+    "version": "0.0.1",
+    "description": "A tribute to saretra05's series",
+    "main": "main.js",
+    "author": "tadoto",
+    "license": "WTFPL",
+    "keywords": [
+        "Live2D",
+        "electron",
+        "Kasane",
+        "Teto",
+        "saretra05"
+    ],
+    "scripts": {
+        "teto": "electron .",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "pack": "electron-builder --dir",
+        "dist": "electron-builder --win --linux",
+        "dist:win": "electron-builder --win && cp ./dist/*-win-x64.exe /mnt/d/zyc/temp/",
+        "dist:linux": "electron-builder --linux"
+    },
+    "build": {
+        "appId": "com.tadoto.kasaneteto.mascot",
+        "productName": "KasaneTetoMascot",
+        "asar": true,
+        "directories": {
+            "output": "dist"
+        },
+        "files": [
+            "main.js",
+            "preload.js",
+            "renderer.js",
+            "index.html",
+            "config.json",
+            "vendor/**/*",
+            "model/**/*",
+            "node_modules/**/*",
+            "package.json"
+        ],
+        "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+        "win": {
+            "target": [
+                {
+                    "target": "nsis",
+                    "arch": [
+                        "x64"
+                    ]
+                },
+                {
+                    "target": "portable",
+                    "arch": [
+                        "x64"
+                    ]
+                }
+            ]
+        },
+        "nsis": {
+            "oneClick": false,
+            "allowToChangeInstallationDirectory": true
+        },
+        "linux": {
+            "target": [
+                {
+                    "target": "AppImage",
+                    "arch": [
+                        "x64"
+                    ]
+                },
+                {
+                    "target": "deb",
+                    "arch": [
+                        "x64"
+                    ]
+                },
+                {
+                    "target": "tar.gz",
+                    "arch": [
+                        "x64"
+                    ]
+                }
+            ],
+            "category": "Utility"
+        }
+    },
+    "devDependencies": {
+        "electron": "^40.6.1",
+        "electron-builder": "^26.8.1"
+    },
+    "dependencies": {
+        "pixi-live2d-display": "^0.3.1",
+        "pixi.js": "^8.16.0"
+    }
 }
