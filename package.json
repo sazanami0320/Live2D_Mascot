@@ -1,8 +1,8 @@
 {
     "name": "saratra05",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "A tribute to saretra05's series",
-    "main": "main.js",
+    "main": "./src/main.js",
     "author": "tadoto",
     "license": "WTFPL",
     "keywords": [
@@ -28,13 +28,8 @@
             "output": "dist"
         },
         "files": [
-            "main.js",
-            "preload.js",
-            "renderer.js",
+            "src/**/*",
             "index.html",
-            "config.json",
-            "vendor/**/*",
-            "model/**/*",
             "node_modules/**/*",
             "package.json"
         ],
@@ -88,7 +83,8 @@
         "electron-builder": "^26.8.1"
     },
     "dependencies": {
-        "pixi-live2d-display": "^0.3.1",
-        "pixi.js": "^8.16.0"
+        "@pixi/sound": "^5.2.3",
+        "pixi-live2d-display-advanced": "^1.1.0",
+        "pixi.js": "^7.4.3"
     }
 }

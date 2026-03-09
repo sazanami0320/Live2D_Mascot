@@ -1,19 +1,33 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Kasane Teto Desktop Mascot</title>
-    <style>
-      html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
-      #stage { position: fixed; inset: 0; width: 100vw; height: 100vh; background: transparent; }
-    </style>
-  </head>
-  <body>
-    <canvas id="stage"></canvas>
-    <script src="./node_modules/pixi.js/dist/pixi.min.js"></script>
-    <script src="./vendor/live2dcubismcore.min.js"></script>
-    <script src="./node_modules/pixi-live2d-display/dist/cubism4.js"></script>
-    <script src="./renderer.js"></script>
-  </body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Kasane Teto Desktop Mascot</title>
+        <style>
+            html,
+            body {
+                margin: 0;
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+                background: transparent;
+            }
+            #stage {
+                position: fixed;
+                inset: 0;
+                width: 100vw;
+                height: 100vh;
+                background: transparent;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="stage"></canvas>
+        <script src="./node_modules/pixi.js/dist/pixi.min.js"></script>
+        <script src="./node_modules/@pixi/sound/dist/pixi-sound.js"></script>
+        <script src="./src/vendor/live2dcubismcore.min.js"></script>
+        <script src="./node_modules/pixi-live2d-display-advanced/dist/cubism4.js"></script>
+        <script type="module" src="./src/renderer.js"></script>
+    </body>
 </html>
