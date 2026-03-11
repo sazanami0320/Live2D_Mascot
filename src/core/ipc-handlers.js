@@ -54,6 +54,7 @@ function registerIpcHandlers({
     ipcMain.removeAllListeners("mascot:window-drag-start");
     ipcMain.removeAllListeners("mascot:window-drag-move");
     ipcMain.removeAllListeners("mascot:window-drag-end");
+    ipcMain.removeAllListeners("mascot:emotions-loaded");
 
     ipcMain.handle("mascot:get-config", () => {
         return appState.getRendererConfig();
@@ -118,6 +119,12 @@ function registerIpcHandlers({
         });
 
         return { ok: true, width: size.width, height: size.height };
+    });
+
+    ipcMain.on("mascot:emotions-loaded", (event, payload) => {
+        const emotions = payload?.emotions;
+        const currentEmotion = payload?.currentEmotion;
+        appState.setAvailableEmotions(emotions, currentEmotion);
     });
 
     ipcMain.on("mascot:window-drag-start", (event) => {

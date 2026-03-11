@@ -107,6 +107,18 @@ export function createModelController({
         placeModel();
     }
 
+    async function fetchEmotionConfig(modelUrl) {
+        try {
+            const baseUrl = modelUrl.substring(0, modelUrl.lastIndexOf("/"));
+            const emotionsUrl = `${baseUrl}/emotions.json`;
+            const response = await fetch(emotionsUrl);
+            if (!response.ok) return null;
+            return await response.json();
+        } catch {
+            return null;
+        }
+    }
+
     async function loadModelByUrl(url) {
         if (!url || typeof url !== "string") {
             throw new Error("Invalid model URL.");
@@ -118,7 +130,10 @@ export function createModelController({
         }
 
         const requestId = ++loadRequestId;
-        const nextModel = await Live2DModel.from(url);
+        const [nextModel, emotionConfig] = await Promise.all([
+            Live2DModel.from(url),
+            fetchEmotionConfig(url),
+        ]);
 
         if (requestId !== loadRequestId) {
             try {
@@ -141,7 +156,7 @@ export function createModelController({
         await autoFitWindowToModel();
 
         if (typeof onModelLoaded === "function") {
-            onModelLoaded(model);
+            onModelLoaded(model, emotionConfig);
         }
     }
 

@@ -27,4 +27,23 @@ contextBridge.exposeInMainWorld("mascotAPI", {
             ipcRenderer.removeListener("mascot:switch-model", listener);
         };
     },
+
+    sendEmotionsLoaded: (payload) =>
+        ipcRenderer.send("mascot:emotions-loaded", payload),
+
+    onSetEmotion: (callback) => {
+        if (typeof callback !== "function") {
+            return () => {};
+        }
+
+        const listener = (_event, data) => {
+            callback(data);
+        };
+
+        ipcRenderer.on("mascot:set-emotion", listener);
+
+        return () => {
+            ipcRenderer.removeListener("mascot:set-emotion", listener);
+        };
+    },
 });

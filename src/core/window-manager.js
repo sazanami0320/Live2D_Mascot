@@ -1,6 +1,38 @@
 const path = require("node:path");
 
 /**
+ * Build submenu entries for emotions.
+ * @param {object} params
+ * @param {import("electron").BrowserWindow} params.win
+ * @param {object} params.appState
+ * @returns {Array<object>}
+ */
+function buildEmotionsSubmenu({ win, appState }) {
+    const emotions = appState.getAvailableEmotions();
+
+    if (!emotions || !emotions.length) {
+        return [{ label: "No emotions available", enabled: false }];
+    }
+
+    const currentEmotion = appState.getCurrentEmotion();
+
+    return emotions.map((emotion) => ({
+        label: emotion.label || emotion.key,
+        type: "radio",
+        checked: emotion.key === currentEmotion,
+        click: () => {
+            appState.setCurrentEmotion(emotion.key);
+
+            if (win && !win.isDestroyed()) {
+                win.webContents.send("mascot:set-emotion", {
+                    key: emotion.key,
+                });
+            }
+        },
+    }));
+}
+
+/**
  * Build submenu entries for recent models.
  * @param {object} params
  * @param {import("electron").BrowserWindow} params.win
@@ -59,6 +91,10 @@ function buildContextMenu({ win, Menu, app, appState }) {
         {
             label: "Recent Models",
             submenu: buildRecentModelsSubmenu({ win, appState }),
+        },
+        {
+            label: "Emotions",
+            submenu: buildEmotionsSubmenu({ win, appState }),
         },
         { type: "separator" },
         {
@@ -135,4 +171,5 @@ module.exports = {
     createMainWindow,
     buildContextMenu,
     buildRecentModelsSubmenu,
+    buildEmotionsSubmenu,
 };

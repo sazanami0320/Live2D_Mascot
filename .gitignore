@@ -1,6 +1,7 @@
 dist/
 node_modules/
 model/
+scripts/
 config.json
 
 AGENT.md

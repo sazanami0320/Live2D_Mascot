@@ -6,6 +6,7 @@ import {
     createWindowDragController,
     setParam,
 } from "./render/controllers.js";
+import { createEmotionController } from "./render/emotions.js";
 
 (() => {
     if (window.__MASCOT_RENDERER_INITIALIZED__) {
@@ -113,13 +114,86 @@ import {
 
         const app = createPixiApp(getOrCreateCanvas());
 
+        const emotionController = createEmotionController({
+            getModel: () => modelController.getCurrentModel(),
+        });
+
+        // Breathing state — shared between app.ticker (for model.y) and
+        // the beforeModelUpdate hook (for Live2D parameters).
+        const breathState = { t: 0 };
+
+        let removeBeforeModelUpdate = null;
+
+        function attachBeforeModelUpdate(model) {
+            removeBeforeModelUpdate?.();
+
+            const internalModel = model.internalModel;
+            if (!internalModel) return;
+
+            const handler = () => {
+                const coreModel = internalModel.coreModel;
+                if (!coreModel) return;
+
+                // Apply emotion parameters.
+                emotionController.applyToModel(coreModel);
+
+                // Apply breathing Live2D parameters.
+                const breathingCfg = config.behavior?.breathing || {};
+                if (breathingCfg.enabled !== false) {
+                    const amp = Number(breathingCfg.amplitude ?? 0.5);
+                    const bt = breathState.t;
+
+                    setParam(coreModel, "ParamBreath", Math.sin(bt * 2.0) * amp);
+
+                    try {
+                        coreModel.addParameterValueById(
+                            "ParamBodyAngleX",
+                            emotionController.getBaseValue("ParamBodyAngleX") +
+                                Math.sin(bt * 1.3) * amp * 5,
+                        );
+                    } catch {}
+
+                    try {
+                        coreModel.addParameterValueById(
+                            "ParamAngleZ",
+                            emotionController.getBaseValue("ParamAngleZ") +
+                                Math.sin(bt * 1.7) * amp * 2,
+                        );
+                    } catch {}
+                }
+            };
+
+            internalModel.on("beforeModelUpdate", handler);
+            removeBeforeModelUpdate = () => {
+                internalModel.off("beforeModelUpdate", handler);
+            };
+        }
+
         const modelController = createModelController({
             app,
             mascotAPI,
             getConfig: () => config,
-            onModelLoaded: () => {
+            onModelLoaded: (model, emotionConfig) => {
                 ui.hideWelcome();
                 ui.clearError();
+
+                emotionController.loadEmotionConfig(emotionConfig, model);
+                attachBeforeModelUpdate(model);
+
+                const emotionList = emotionController.getEmotionList();
+                const currentEmotion = emotionController.getCurrentEmotion();
+
+                if (typeof mascotAPI.sendEmotionsLoaded === "function") {
+                    mascotAPI.sendEmotionsLoaded({
+                        emotions: emotionList,
+                        currentEmotion,
+                    });
+                }
+            },
+            onModelCleared: () => {
+                removeBeforeModelUpdate?.();
+                removeBeforeModelUpdate = null;
+                emotionController.destroy();
             },
         });
 
@@ -179,7 +253,23 @@ import {
             );
         }
 
-        let t = 0;
+        let unsubscribeSetEmotion = () => {};
+        if (typeof mascotAPI.onSetEmotion === "function") {
+            unsubscribeSetEmotion = mascotAPI.onSetEmotion((payload) => {
+                const key = payload?.key;
+                if (!key || typeof key !== "string") return;
+
+                emotionController.setEmotion(key);
+
+                if (typeof mascotAPI.sendEmotionsLoaded === "function") {
+                    mascotAPI.sendEmotionsLoaded({
+                        emotions: emotionController.getEmotionList(),
+                        currentEmotion: emotionController.getCurrentEmotion(),
+                    });
+                }
+            });
+        }
+
         app.ticker.add((delta) => {
             const dt = Math.max(0.001, delta / 60);
 
@@ -190,26 +280,19 @@ import {
             const model = modelController.getCurrentModel();
             if (!model) return;
 
+            // Advance emotion interpolation (values applied in beforeModelUpdate).
+            emotionController.update(dt);
+
             const breathingCfg = config.behavior?.breathing || {};
             const baseY = modelController.getBreathingBaseY();
 
             if (breathingCfg.enabled !== false) {
-                const amp = Number(breathingCfg.amplitude ?? 0.5);
                 const speed = Number(breathingCfg.speed ?? 1);
-                t += dt * speed;
+                const amp = Number(breathingCfg.amplitude ?? 0.5);
+                breathState.t += dt * speed;
 
-                const coreModel = model.internalModel?.coreModel;
-                const wave = Math.sin(t * 2.0);
-
-                setParam(coreModel, "ParamBreath", wave * amp);
-                setParam(
-                    coreModel,
-                    "ParamBodyAngleX",
-                    Math.sin(t * 1.3) * amp * 5,
-                );
-                setParam(coreModel, "ParamAngleZ", Math.sin(t * 1.7) * amp * 2);
-
-                model.y = baseY + Math.sin(t * 2.0) * amp * 2.0;
+                // model.y is a PIXI display property — safe to set in app.ticker.
+                model.y = baseY + Math.sin(breathState.t * 2.0) * amp * 2.0;
             } else {
                 model.y = baseY;
             }
@@ -225,8 +308,10 @@ import {
             window.removeEventListener("resize", handleResize);
 
             unsubscribeSwitchModel?.();
+            unsubscribeSetEmotion?.();
             cursorTracker.destroy?.();
             dragController.destroy?.();
+            emotionController.destroy?.();
             modelController.destroy?.();
             ui.destroy?.();
 

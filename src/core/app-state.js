@@ -133,6 +133,8 @@ function createAppState(options = {}) {
                 ? appConfig.modelPath
                 : null,
         recentModels: normalizeRecentModels(appConfig.recentModels),
+        availableEmotions: [],
+        currentEmotion: null,
     };
 
     function resolveModelAbsolutePath(modelPath) {
@@ -290,6 +292,23 @@ function createAppState(options = {}) {
         return normalizeRecentModels(runtimeState.recentModels);
     }
 
+    function setAvailableEmotions(emotions, currentEmotion) {
+        runtimeState.availableEmotions = Array.isArray(emotions) ? emotions : [];
+        runtimeState.currentEmotion = currentEmotion || null;
+    }
+
+    function getAvailableEmotions() {
+        return runtimeState.availableEmotions;
+    }
+
+    function getCurrentEmotion() {
+        return runtimeState.currentEmotion;
+    }
+
+    function setCurrentEmotion(key) {
+        runtimeState.currentEmotion = key || null;
+    }
+
     return {
         projectName,
         appConfig,
@@ -299,6 +318,11 @@ function createAppState(options = {}) {
         getRendererConfig,
         getRecentModels,
         clearRecentModels,
+
+        setAvailableEmotions,
+        getAvailableEmotions,
+        getCurrentEmotion,
+        setCurrentEmotion,
 
         resolveModelAbsolutePath,
         toModelUrl,
